@@ -3,58 +3,55 @@ pipeline {
 
     environment {
         APP_NAME = "netflix-clone"
-        IMAGE_NAME = "netflix:local"
-        // The port your EC2 will expose to the internet
-        HOST_PORT = "80" 
-        // The port your app is listening on inside the container
-        CONTAINER_PORT = "80" 
+        // Dynamically tagging the image with the build number (e.g., netflix:21, netflix:22)
+        // This is the best way to ensure you never see "old code"
+        IMAGE_NAME = "netflix:${env.BUILD_NUMBER}"
     }
 
     stages {
-        stage('Cleanup Workspace') {
+        stage('Clean Start') {
             steps {
-                echo "Cleaning up previous build files..."
+                echo "Wiping workspace to ensure fresh code from GitHub..."
                 cleanWs()
             }
         }
 
         stage('Checkout Code') {
             steps {
+                echo "Fetching latest code from main branch..."
                 git branch: 'main', url: 'https://github.com/kaybee-singh/netflix-clone/'
             }
         }
 
-        stage('Build Image') {
+        stage('Docker Build') {
             steps {
                 script {
-                    echo "Building Docker Image..."
+                    echo "Building Image: ${IMAGE_NAME}"
+                    // --no-cache is your best friend for live demos
                     sh "sudo docker build --no-cache -t ${IMAGE_NAME} -f Containerfile ."
                 }
             }
         }
 
-        stage('Deploy Container') {
+        stage('Deploy (Atomic Swap)') {
             steps {
                 script {
-                    echo "Removing old container if it exists..."
-                    // '|| true' ensures the pipeline doesn't fail if the container isn't there yet
-                    sh "sudo docker stop ${APP_NAME} || true"
-                    sh "sudo docker rm ${APP_NAME} || true"
-
-                    echo "Starting new container on port ${HOST_PORT}..."
-                    sh "sudo docker run -d --name ${APP_NAME} -p ${HOST_PORT}:${CONTAINER_PORT} ${IMAGE_NAME}"
+                    echo "Killing old container and launching ${IMAGE_NAME}..."
+                    // Force remove old container to clear the port
+                    sh "sudo docker rm -f ${APP_NAME} || true"
+                    
+                    // Launch new container
+                    sh "sudo docker run -d --name ${APP_NAME} -p 80:80 ${IMAGE_NAME}"
                 }
             }
         }
 
-        stage('Health Check') {
+        stage('Verification') {
             steps {
                 script {
-                    echo "Waiting for app to start..."
-                    sleep 5
-                    sh "sudo docker ps"
-                    // Check if the app is responding locally
-                    sh "curl -I http://localhost:${HOST_PORT} || echo 'Warning: Localhost check failed'"
+                    echo "Checking if the new code reached the container..."
+                    // This command will print the title in your Jenkins logs
+                    sh "sudo docker exec ${APP_NAME} grep -i 'Kubearc' /usr/share/nginx/html/index.html || echo 'Title not found! Check your Git push.'"
                 }
             }
         }
@@ -62,9 +59,14 @@ pipeline {
 
     post {
         success {
-            echo "-----------------------------------------------------------"
-            echo "SUCCESS! Access your app at: http://your-ec2-public-ip"
-            echo "-----------------------------------------------------------"
+            echo "--------------------------------------------------------"
+            echo "DEPLOYMENT SUCCESSFUL (Build #${env.BUILD_NUMBER})"
+            echo "Refresh your browser (Ctrl + F5) to see the changes."
+            echo "--------------------------------------------------------"
+        }
+        always {
+            // Optional: Clean up old images to save disk space on EC2
+            // sh "sudo docker image prune -f"
         }
     }
 }
