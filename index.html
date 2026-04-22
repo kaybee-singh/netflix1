@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Netflix Demo - Final Build</title>
+    <title>Kubearc DevOps Bootcamp - Final Build</title>
     <style>
         :root { --netflix-red: #e50914; --netflix-black: #141414; --grey: #808080; }
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #000; color: white; margin: 0; overflow-x: hidden; }
@@ -55,7 +55,7 @@
             height: 80vh; 
             background: linear-gradient(to right, #000 5%, transparent 70%), 
                         linear-gradient(to top, #000 5%, transparent 30%),
-                        url('posters/vadh.jpg') no-repeat center center/cover; 
+                        url('posters/kantara.jpg') no-repeat center center/cover; 
             display: flex; align-items: center; padding: 0 50px; 
         }
         .hero-content h1 { font-size: 5rem; margin: 0; }
@@ -119,13 +119,13 @@
     </div>
 
     <div id="home-screen">
-        <div class="navbar"><div class="logo">NETFLIX</div></div>
+        <div class="navbar"><div class="logo">KUBEARC DEVOPS BOOTCAMP</div></div>
         <div class="hero">
             <div class="hero-content">
-                <h1>VADH</h1>
-                <p>#1 in Movies Today</p>
-                <button class="btn" style="background:white; color:black;" onclick="playTrailer('vadh.jpg')">▶ Play</button>
-                <button class="btn" style="background:rgba(109,109,110,0.8); color:white;" onclick="playTrailer('vadh.jpg')">ⓘ More Info</button>
+                <h1>KANTARA</h1>
+                <p>#1 in DevOps Training Today</p>
+                <button class="btn" style="background:white; color:black;" onclick="playTrailer('kantara.jpg')">▶ Play</button>
+                <button class="btn" style="background:rgba(109,109,110,0.8); color:white;" onclick="playTrailer('kantara.jpg')">ⓘ More Info</button>
             </div>
         </div>
 
@@ -151,27 +151,31 @@
 
     <script>
         const trailerMap = {
-            'bads-of-bollywood.jpeg': 'J-0f7teDD2I',
             'vadh.jpg': 'pyUSsvVdL20',
             'kantara.jpg': '6oKFao0aISA',
-            'border2.jpeg': 'AZGfCK1yTTI',
-            'dhurandar.jpeg': 'BKOVzHcjEIo',
-            'gladiator2.jpeg': '4rgYUipGJNo',
-            'gone-girl.jpeg': '2-_-1nJf8Vg',
-            'inception.jpeg': 'YoHD9XEInc0',
             'rrr.jpeg': 'GY4BgdUSpbE',
+            'inception.jpeg': 'YoHD9XEInc0',
             'thor.jpeg': 'JOddp-nlNvQ',
-            'tumbad.jpeg': 'YGIcZrUBY0k',
-            'boss-baby.jpeg': 'tquIfapGVqs',
-            'minions.jpeg': 'eisKxhjBnZ0',
             'loki.jpeg': 'nW948Va-l10',
-            'jolly-llb.jpeg': 'eSgJ8PfSUSk',
-            'chennai-express.jpeg': 'hZGR5Sj1Bfo',
-            'jurasic-world.jpeg': 'RFinNxS5KN4',
-            'lucky-bhaskar.jpeg': 'dQw4w9WgXcQ'
+            'border2.jpeg': 'AZGfCK1yTTI',
+            'gladiator2.jpeg': '4rgYUipGJNo',
+            'dhurandar.jpeg': 'BKOVzHcjEIo',
+            'tumbad.jpeg': 'YGIcZrUBY0k'
         };
 
-        const movieFiles = Object.keys(trailerMap);
+        // Static movie list
+        const movieFiles = [
+            'vadh.jpg', 
+            'kantara.jpg', 
+            'rrr.jpeg', 
+            'inception.jpeg', 
+            'thor.jpeg', 
+            'loki.jpeg',
+            'border2.jpeg',
+            'gladiator2.jpeg',
+            'dhurandar.jpeg',
+            'tumbad.jpeg'
+        ];
 
         function showHome(user) {
             document.getElementById('user-title').innerText = `Continue Watching for ${user}`;
@@ -189,17 +193,15 @@
             el.scrollBy({ left: (el.clientWidth * 0.7) * d, behavior: 'smooth' });
         }
 
-        function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
-
         function initRows() {
             const r1 = document.getElementById('row1');
             const r2 = document.getElementById('row2');
-            const shuffled = shuffle([...movieFiles]);
             
-            // Balanced slicing for the remaining movies
-            const split = Math.floor(shuffled.length / 2);
-            shuffled.slice(0, split).forEach(f => r1.appendChild(createP(f)));
-            shuffled.slice(split).forEach(f => r2.appendChild(createP(f)));
+            // Loop through all movies for both rows so the screen is full
+            movieFiles.forEach(f => {
+                r1.appendChild(createP(f));
+                r2.appendChild(createP(f));
+            });
         }
 
         function createP(f) {
